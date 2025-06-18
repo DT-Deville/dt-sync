@@ -12,8 +12,8 @@ local gui = Instance.new("ScreenGui", game.CoreGui)
 gui.Name = "DTSyncGuiV4"
 
 local main = Instance.new("Frame", gui)
-main.Size = UDim2.new(0, 350, 0, 180)
-main.Position = UDim2.new(0.5, -175, 0.5, -90)
+main.Size = UDim2.new(1, 0, 1, 0)
+main.Position = UDim2.new(0, 0, 0, 0)
 main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 main.BorderSizePixel = 0
 main.BackgroundTransparency = 1
