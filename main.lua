@@ -27,7 +27,7 @@ local title = Instance.new("TextLabel", main)
 title.Size = UDim2.new(1, -150, 0, 40)
 title.Position = UDim2.new(0, 150, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "DT SYNC | Pet Simulator 99"
+title.Text = "DT SYNC | Pet Simulator: Grow a Garden"
 title.TextColor3 = Color3.fromRGB(0, 255, 127)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 24
@@ -176,11 +176,11 @@ local collectedResources = 0
 local petList = {}
 local function updatePetList()
 	pcall(function()
-		local lib = require(ReplicatedStorage:FindFirstChild("Framework") and ReplicatedStorage.Framework:FindFirstChild("Library"))
-		local save = lib.Save.Get().Inventory.Pets
+		local lib = require(ReplicatedStorage:FindFirstChild("GameEvents") and ReplicatedStorage.GameEvents:FindFirstChild("DataStream"))
+		local save = lib and lib:GetData().Pets or {}
 		petList = {}
 		for id, data in pairs(save) do
-			table.insert(petList, {id = id, name = data.id or "Unknown"})
+			table.insert(petList, {id = id, name = data.Type or "Unknown"})
 		end
 	end)
 	
@@ -236,7 +236,7 @@ end
 -- Game Check
 local gameSupported = false
 pcall(function()
-	local lib = require(ReplicatedStorage:FindFirstChild("Framework") and ReplicatedStorage.Framework:FindFirstChild("Library"))
+	local lib = require(ReplicatedStorage:FindFirstChild("GameEvents") and ReplicatedStorage.GameEvents:FindFirstChild("DataStream"))
 	if lib then
 		gameSupported = true
 		local gameInfo = MarketplaceService:GetProductInfo(game.PlaceId)
@@ -254,7 +254,7 @@ end
 -- Fake Load
 if not gameSupported then
 	loading.Text = "❌ Game not supported!"
-	status.Text = "Please run in Pet Simulator 99."
+	status.Text = "Please run in Pet Simulator: Grow a Garden."
 	wait(2)
 	for i = 1, 10 do
 		main.BackgroundTransparency = i * 0.1
@@ -279,15 +279,24 @@ wait(1.2)
 loading.Text = "All modules loaded successfully"
 status.Text = "✅ Ready."
 
--- Auto-Farm Logic
+-- Auto-Farm Logic (Adapted for Grow a Garden)
 autoFarmButton.MouseButton1Click:Connect(function()
 	autoFarmActive = not autoFarmActive
 	autoFarmButton.Text = "Auto-Farm: " .. (autoFarmActive and "On" or "Off")
 	if autoFarmActive then
 		spawn(function()
 			while autoFarmActive do
-				collectedResources = collectedResources + 10
-				status.Text = "Auto-Farming: " .. collectedResources .. " resources collected"
+				pcall(function()
+					local dataStream = ReplicatedStorage:FindFirstChild("GameEvents") and ReplicatedStorage.GameEvents:FindFirstChild("DataStream")
+					if dataStream then
+						-- Simulate planting and harvesting
+						dataStream:FireServer("PlantSeed", {Seed = "Carrot"}) -- Example seed
+						wait(0.5)
+						dataStream:FireServer("HarvestCrop")
+						collectedResources = collectedResources + 10
+						status.Text = "Auto-Farming: " .. collectedResources .. " crops harvested"
+					end
+				end)
 				wait(1)
 			end
 		end)
@@ -298,8 +307,8 @@ end)
 
 -- Pet List Logic
 petListButton.MouseButton1Click:Connect(function()
-	petListFrame.Visible = true
 	teleportFrame.Visible = false
+	petListFrame.Visible = true
 	loading.Visible = false
 	status.Visible = false
 	updatePetList()
@@ -312,6 +321,7 @@ autoRankButton.MouseButton1Click:Connect(function()
 	if active then
 		spawn(function()
 			while autoRankButton.Text == "Auto-Rank: On" do
+				-- Simulate rank progression (e.g., complete tasks)
 				status.Text = "Progressing rank..."
 				wait(2)
 			end
@@ -360,7 +370,6 @@ generateCodeButton.MouseButton1Click:Connect(function()
 		code = code .. string.char(math.random(65, 90)) -- Random A-Z
 	end
 	victimCodeLabel.Text = "Teleport Code: " .. code
-	-- Simulate copying to clipboard (Roblox doesn't support clipboard natively)
 	loading.Visible = true
 	status.Visible = true
 	teleportFrame.Visible = false
@@ -391,6 +400,11 @@ end
 
 addHoverEffect(autoFarmButton)
 addHoverEffect(petListButton)
+addHoverEffect(autoRankButton)
+addHoverEffect(teleportButton)
+addHoverEffect(settingsButton)
+addHoverEffect(teleportGoButton)
+addHoverEffect(generateCodeButton)
 addHoverEffect(autoRankButton)
 addHoverEffect(teleportButton)
 addHoverEffect(settingsButton)
