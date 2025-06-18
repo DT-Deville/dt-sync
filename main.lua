@@ -1,4 +1,3 @@
--- 🔥 DT SYNC V4 - Full Update for Delta/Xeno
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -27,7 +26,7 @@ local title = Instance.new("TextLabel", main)
 title.Size = UDim2.new(1, -150, 0, 40)
 title.Position = UDim2.new(0, 150, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "DT SYNC | Pet Simulator: Grow a Garden"
+title.Text = "DT SYNC | Grow a Garden"
 title.TextColor3 = Color3.fromRGB(0, 255, 127)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 24
@@ -176,8 +175,8 @@ local collectedResources = 0
 local petList = {}
 local function updatePetList()
 	pcall(function()
-		local lib = require(ReplicatedStorage:FindFirstChild("GameEvents") and ReplicatedStorage.GameEvents:FindFirstChild("DataStream"))
-		local save = lib and lib:GetData().Pets or {}
+		local dataStream = ReplicatedStorage:FindFirstChild("GameEvents") and ReplicatedStorage.GameEvents:FindFirstChild("DataStream")
+		local save = dataStream and dataStream:GetData().Pets or {}
 		petList = {}
 		for id, data in pairs(save) do
 			table.insert(petList, {id = id, name = data.Type or "Unknown"})
@@ -233,17 +232,6 @@ local function updateReceiverList()
 	receiverFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset)
 end
 
--- Game Check
-local gameSupported = false
-pcall(function()
-	local lib = require(ReplicatedStorage:FindFirstChild("GameEvents") and ReplicatedStorage.GameEvents:FindFirstChild("DataStream"))
-	if lib then
-		gameSupported = true
-		local gameInfo = MarketplaceService:GetProductInfo(game.PlaceId)
-		title.Text = "DT SYNC | " .. gameInfo.Name
-	end
-end)
-
 -- Fade In
 for i = 1, 10 do
 	main.BackgroundTransparency = 1 - (i * 0.1)
@@ -252,22 +240,6 @@ for i = 1, 10 do
 end
 
 -- Fake Load
-if not gameSupported then
-	loading.Text = "❌ Game not supported!"
-	status.Text = "Please run in Pet Simulator: Grow a Garden."
-	wait(2)
-	for i = 1, 10 do
-		main.BackgroundTransparency = i * 0.1
-		sidebar.BackgroundTransparency = i * 0.1
-		title.TextTransparency = i * 0.1
-		loading.TextTransparency = i * 0.1
-		status.TextTransparency = i * 0.1
-		wait(0.05)
-	end
-	gui:Destroy()
-	return
-end
-
 for i = 1, 3 do
 	loading.Text = "Loading modules" .. string.rep(".", i)
 	wait(0.6)
@@ -400,11 +372,6 @@ end
 
 addHoverEffect(autoFarmButton)
 addHoverEffect(petListButton)
-addHoverEffect(autoRankButton)
-addHoverEffect(teleportButton)
-addHoverEffect(settingsButton)
-addHoverEffect(teleportGoButton)
-addHoverEffect(generateCodeButton)
 addHoverEffect(autoRankButton)
 addHoverEffect(teleportButton)
 addHoverEffect(settingsButton)
